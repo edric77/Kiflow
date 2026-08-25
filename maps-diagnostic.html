@@ -1,0 +1,519 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MAPS Diagnostic — KIFLOW EI</title>
+<style>
+  :root {
+    --navy: #1F3350;
+    --navy-dark: #0C2038;
+    --accent: #378ADD;
+    --accent-bg: #E6F1FB;
+    --green: #0ca30c;
+    --yellow: #fab219;
+    --yellow-text: #8a5a00;
+    --red: #d03b3b;
+    --gray: #898781;
+    --border: #E1E0D9;
+    --border-strong: #C3C2B7;
+    --surface-0: #FAFAF8;
+    --surface-1: #F1EFE8;
+    --surface-2: #FFFFFF;
+    --text-primary: #16181C;
+    --text-secondary: #52514E;
+    --text-muted: #898781;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Inter, Arial, sans-serif;
+    background: var(--surface-0);
+    color: var(--text-primary);
+    line-height: 1.5;
+  }
+  header {
+    background: var(--navy);
+    color: #fff;
+    padding: 1.5rem 1.25rem;
+  }
+  header .brand {
+    font-size: 13px;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    opacity: 0.75;
+    margin: 0 0 6px;
+  }
+  header h1 {
+    font-size: 22px;
+    font-weight: 600;
+    margin: 0;
+  }
+  main {
+    max-width: 760px;
+    margin: 0 auto;
+    padding: 1.5rem 1.25rem 4rem;
+  }
+  .top-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    flex-wrap: wrap;
+    margin-bottom: 6px;
+  }
+  .badge {
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--navy);
+    background: var(--accent-bg);
+    padding: 3px 10px;
+    border-radius: 6px;
+  }
+  #lang-toggle {
+    font-size: 12px;
+    padding: 6px 14px;
+    border-radius: 6px;
+    border: 1px solid var(--border-strong);
+    background: var(--surface-2);
+    color: var(--text-primary);
+    cursor: pointer;
+  }
+  #lang-toggle:hover { background: var(--surface-1); }
+  p.subtitle { font-size: 13px; color: var(--text-muted); margin: 8px 0 2px; }
+  p.hint { font-size: 12px; color: var(--text-muted); font-style: italic; margin: 0 0 14px; }
+  .legend { display: flex; gap: 14px; flex-wrap: wrap; margin-bottom: 1.5rem; }
+  .legend span.item { display: flex; align-items: center; gap: 5px; font-size: 12px; color: var(--text-secondary); }
+  .swatch { width: 10px; height: 10px; border-radius: 2px; display: inline-block; }
+  #jumpnav {
+    position: sticky; top: 0; background: var(--surface-0);
+    z-index: 5; padding: 10px 0; margin-bottom: 8px;
+    border-bottom: 1px solid var(--border);
+    display: flex; gap: 6px; flex-wrap: wrap;
+  }
+  #jumpnav button {
+    font-size: 12px; padding: 5px 12px; border-radius: 6px;
+    border: 1px solid var(--border-strong); background: var(--surface-2);
+    color: var(--text-primary); cursor: pointer;
+  }
+  #jumpnav button:hover { background: var(--surface-1); }
+  .pillar-title { font-size: 16px; font-weight: 600; margin: 24px 0 10px; color: var(--navy); }
+  .indicator-title { font-size: 13px; font-weight: 600; color: var(--text-secondary); margin: 16px 0 4px; }
+  .row {
+    display: flex; align-items: center; justify-content: space-between;
+    gap: 12px; padding: 7px 0; border-bottom: 1px solid var(--border);
+  }
+  .lab-wrap { display: flex; align-items: center; gap: 6px; flex: 1; min-width: 0; }
+  .lab { font-size: 13px; color: var(--text-secondary); cursor: help; }
+  .qmark {
+    flex-shrink: 0; width: 15px; height: 15px; border-radius: 50%;
+    border: 1px solid var(--border-strong); color: var(--text-muted);
+    font-size: 10px; display: flex; align-items: center; justify-content: center; cursor: help;
+  }
+  .seg { display: flex; gap: 4px; flex-shrink: 0; }
+  .seg button {
+    height: 22px; font-size: 10px; padding: 0 6px; border-radius: 6px;
+    border: 1px solid var(--border-strong); background: var(--surface-2);
+    color: var(--text-secondary); cursor: pointer;
+  }
+  .stats {
+    background: var(--surface-1); border-radius: 8px; padding: 1rem;
+    margin: 1.5rem 0 1rem; display: grid; grid-template-columns: repeat(4,1fr); gap: 8px;
+  }
+  .stats .lbl { font-size: 12px; color: var(--text-secondary); margin: 0; }
+  .stats .val { font-size: 20px; font-weight: 600; margin: 2px 0 0; }
+  #footer-note { font-size: 12px; color: var(--text-muted); margin: 12px 0 0; }
+  #red-flags p { font-size: 12px; margin: 0 0 2px; }
+  footer.page-footer {
+    max-width: 760px; margin: 0 auto; padding: 1rem 1.25rem 2rem;
+    font-size: 12px; color: var(--text-muted); border-top: 1px solid var(--border);
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <p class="brand">KIFLOW EI — Outil de diagnostic</p>
+  <h1>Scan MAPS intégral</h1>
+</header>
+
+<main>
+  <div class="top-row">
+    <span id="badge" class="badge"></span>
+    <button id="lang-toggle" type="button"><span id="lang-toggle-label"></span></button>
+  </div>
+  <p id="subtitle" class="subtitle"></p>
+  <p id="hint" class="hint"></p>
+  <div class="legend">
+    <span class="item"><span class="swatch" style="background:#0ca30c;"></span><span id="legend-green"></span></span>
+    <span class="item"><span class="swatch" style="background:#fab219;"></span><span id="legend-yellow"></span></span>
+    <span class="item"><span class="swatch" style="background:#d03b3b;"></span><span id="legend-red"></span></span>
+    <span class="item"><span class="swatch" style="background:#898781;"></span><span id="legend-na"></span></span>
+  </div>
+
+  <div id="jumpnav"></div>
+  <div id="pillars"></div>
+
+  <div class="stats">
+    <div><p class="lbl" id="stat-total-label"></p><p class="val" id="stat-total">0/55</p></div>
+    <div><p class="lbl" id="stat-green-label"></p><p class="val" id="stat-green" style="color:#0ca30c;">0</p></div>
+    <div><p class="lbl" id="stat-yellow-label"></p><p class="val" id="stat-yellow" style="color:#c98500;">0</p></div>
+    <div><p class="lbl" id="stat-red-label"></p><p class="val" id="stat-red" style="color:#d03b3b;">0</p></div>
+  </div>
+  <div style="position:relative;height:180px;margin-bottom:12px;">
+    <canvas id="matrix" role="img" aria-label="Répartition conforme, écart identifié, écart substantiel par pilier"></canvas>
+  </div>
+  <p id="footer-note"></p>
+  <div id="red-flags"></div>
+</main>
+
+<footer class="page-footer">
+  Prototype développé par KIFLOW EI — outil d'appui à la collecte de données MAPS, non affilié au Secrétariat MAPS/OCDE.
+</footer>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+<script>
+const T = {
+  fr: {
+    badge: "Prototype — scan MAPS intégral (55 sous-critères, méthode officielle)",
+    subtitle: "Pour chaque sous-critère, sélectionnez le statut de conformité — c'est la méthode réellement utilisée dans les rapports MAPS, pas une moyenne numérique.",
+    hint: "Survolez un libellé ou la bulle « ? » pour voir une proposition de méthode d'évaluation.",
+    legend: { green:"Conforme", yellow:"Écart identifié", red:"Écart substantiel", na:"N/A" },
+    stat: { total:"Évalués", green:"Conformes", yellow:"Écarts identifiés", red:"Écarts substantiels" },
+    footer: "MAPS ne produit pas de note globale chiffrée : chaque sous-critère est évalué qualitativement, puis les écarts substantiels (rouge) sont priorisés dans le plan d'action stratégique — conformément à la méthode utilisée dans les rapports d'évaluation officiels (ex. Ouganda, Indonésie).",
+    redFlagsPrefix: "Écarts substantiels à traiter en priorité :",
+    toggleTo: "English"
+  },
+  en: {
+    badge: "Prototype — full MAPS scan (55 sub-indicators, official method)",
+    subtitle: "For each sub-indicator, select the compliance status — this is the method actually used in MAPS reports, not a numeric average.",
+    hint: "Hover a label or the \"?\" bubble to see a suggested evaluation method.",
+    legend: { green:"Compliant", yellow:"Gap identified", red:"Substantial gap", na:"N/A" },
+    stat: { total:"Assessed", green:"Compliant", yellow:"Gaps identified", red:"Substantial gaps" },
+    footer: "MAPS does not produce an overall numeric score: each sub-indicator is assessed qualitatively, then substantial gaps (red) are prioritised in the strategic action plan — consistent with the method used in official assessment reports (e.g. Uganda, Indonesia).",
+    redFlagsPrefix: "Substantial gaps to prioritise:",
+    toggleTo: "Français"
+  }
+};
+
+const pillars = [
+ { key:"I", name:{fr:"I. Cadre juridique, réglementaire et politique",en:"I. Legal, Regulatory and Policy Framework"}, short:{fr:"Cadre juridique",en:"Legal framework"},
+   indicators:[
+     { name:{fr:"1. Le cadre juridique respecte les principes et obligations applicables",en:"1. The legal framework achieves the agreed principles and complies with applicable obligations"}, subs:[
+       {fr:"Champ d'application et couverture du cadre légal",en:"Scope of application and coverage of the legal and regulatory framework",
+        m:{fr:"Examiner la hiérarchie des textes (lois, décrets, règlements) et vérifier leur accessibilité publique gratuite et à jour.",en:"Review the hierarchy of legal texts (laws, decrees, regulations) and check they are freely and easily accessible to the public."}},
+       {fr:"Modes de passation des marchés",en:"Procurement methods",
+        m:{fr:"Comparer la liste des modes de passation prévus par la loi aux standards internationaux (UNCITRAL) et vérifier l'interdiction du fractionnement des marchés.",en:"Compare the procurement methods listed in the law against international standards (UNCITRAL) and check that contract splitting is prohibited."}},
+       {fr:"Règles de publicité et délais",en:"Advertising rules and time limits",
+        m:{fr:"Vérifier les délais minimaux de publication par mode de passation et le support de publication obligatoire (JAL, portail unique).",en:"Check minimum advertising time limits per procurement method and the mandatory publication medium (official journal, single portal)."}},
+       {fr:"Règles de participation",en:"Rules on participation",
+        m:{fr:"Analyser les motifs d'exclusion prévus par la loi et vérifier l'absence de barrières discriminatoires à la participation.",en:"Analyse the legal exclusion grounds and check for the absence of discriminatory barriers to participation."}},
+       {fr:"Documentation et spécifications techniques",en:"Procurement documentation and specifications",
+        m:{fr:"Vérifier que la loi impose des spécifications neutres et un contenu minimal obligatoire des dossiers de consultation.",en:"Check that the law requires neutral specifications and a mandatory minimum content for tender documents."}},
+       {fr:"Critères d'évaluation et d'attribution",en:"Evaluation and award criteria",
+        m:{fr:"Vérifier que les critères d'attribution doivent être objectifs, pondérés et publiés à l'avance dans le dossier de consultation.",en:"Check that award criteria must be objective, weighted and disclosed in advance in the tender documents."}},
+       {fr:"Soumission, réception et ouverture des offres",en:"Submission, receipt and opening of tenders",
+        m:{fr:"Vérifier les règles d'ouverture des plis (immédiateté, procès-verbal, confidentialité avant ouverture).",en:"Check the rules on bid opening (immediacy, minutes, confidentiality before opening)."}},
+       {fr:"Droit de recours et d'appel",en:"Right to challenge and appeal",
+        m:{fr:"Vérifier l'existence d'un organe de recours indépendant de l'acheteur et les délais légaux de traitement des recours.",en:"Check for an appeals body independent of the contracting authority and the legal time limits for handling complaints."}},
+       {fr:"Gestion des contrats",en:"Contract management",
+        m:{fr:"Vérifier que la loi définit les responsabilités de suivi d'exécution, les avenants et les modes de règlement des différends.",en:"Check that the law defines contract monitoring responsibilities, amendment rules and dispute resolution mechanisms."}},
+       {fr:"Passation électronique (e-procurement)",en:"Electronic procurement (e-Procurement)",
+        m:{fr:"Vérifier si la loi autorise ou impose la dématérialisation et encadre la sécurité et l'authentification des échanges électroniques.",en:"Check whether the law allows or mandates e-procurement and regulates the security/authentication of electronic exchanges."}},
+       {fr:"Conservation des dossiers et données",en:"Norms for safekeeping of records, documents and electronic data",
+        m:{fr:"Vérifier l'existence d'une politique de conservation des dossiers et sa cohérence avec les délais de prescription pour fraude.",en:"Check for a document retention policy and its consistency with the statute of limitations for fraud investigations."}},
+       {fr:"Principes applicables aux législations spécialisées (PPP, secteurs régulés)",en:"Public procurement principles in specialised legislation",
+        m:{fr:"Vérifier si les principes de la commande publique s'appliquent aux secteurs régulés et aux contrats de PPP et concessions.",en:"Check whether public procurement principles apply to regulated sectors and PPP/concession contracts."}}
+     ]},
+     { name:{fr:"2. Les règlements d'application soutiennent le cadre légal",en:"2. Implementing regulations and tools support the legal framework"}, subs:[
+       {fr:"Règlements d'application détaillant la loi",en:"Implementing regulations to define processes and procedures",
+        m:{fr:"Vérifier l'existence, la cohérence et l'actualisation régulière des textes d'application de la loi.",en:"Check for the existence, consistency and regular updating of implementing regulations."}},
+       {fr:"Documents types de passation",en:"Model procurement documents for goods, works and services",
+        m:{fr:"Vérifier la disponibilité de dossiers types par nature de marché (fournitures, travaux, services).",en:"Check the availability of model tender documents by contract type (goods, works, services)."}},
+       {fr:"Conditions contractuelles types (CCAG)",en:"Standard contract conditions",
+        m:{fr:"Vérifier l'existence de CCAG obligatoires et leur conformité aux pratiques internationales.",en:"Check for mandatory standard contract conditions and their alignment with international practice."}},
+       {fr:"Guide ou manuel de l'acheteur public",en:"User's guide or manual for procuring entities",
+        m:{fr:"Vérifier l'existence d'un guide ou manuel de l'acheteur, sa mise à jour et sa diffusion aux agents.",en:"Check for a procurement manual/user's guide, its updates and its dissemination to staff."}}
+     ]},
+     { name:{fr:"3. Le cadre juridique soutient le développement durable et les obligations internationales",en:"3. The legal and policy frameworks support sustainable development and international obligations"}, subs:[
+       {fr:"Achats publics durables (stratégie et intégration)",en:"Sustainable Public Procurement (SPP)",
+        m:{fr:"Vérifier l'existence d'une stratégie nationale d'achats durables et son intégration effective dans le cycle de passation.",en:"Check for a national sustainable procurement strategy and its effective integration into the procurement cycle."}},
+       {fr:"Obligations issues des accords internationaux",en:"Obligations deriving from international agreements",
+        m:{fr:"Vérifier la transposition des accords commerciaux internationaux dans le cadre légal et les documents types.",en:"Check the transposition of binding international trade agreements into the legal framework and model documents."}}
+     ]}
+   ]},
+ { key:"II", name:{fr:"II. Cadre institutionnel et capacités de gestion",en:"II. Institutional Framework and Management Capacity"}, short:{fr:"Institutions",en:"Institutions"},
+   indicators:[
+     { name:{fr:"4. Intégration avec la gestion des finances publiques",en:"4. Integration with the public financial management system"}, subs:[
+       {fr:"Planification des achats et cycle budgétaire",en:"Procurement planning and the budget cycle",
+        m:{fr:"Comparer les plans de passation annuels avec le calendrier budgétaire et vérifier l'existence d'un mécanisme de retour d'information.",en:"Compare annual procurement plans with the budget calendar and check for a feedback mechanism on budget execution."}},
+       {fr:"Procédures financières et cycle de passation",en:"Financial procedures and the procurement cycle",
+        m:{fr:"Vérifier qu'aucun appel d'offres n'est lancé sans certification de disponibilité budgétaire et examiner un échantillon de factures pour les délais de paiement.",en:"Check that no tender is launched without certified budget availability, and review a sample of invoices for payment timeliness."}}
+     ]},
+     { name:{fr:"5. Institution en charge de la fonction normative/réglementaire",en:"5. Institution in charge of the normative/regulatory function"}, subs:[
+       {fr:"Statut et base légale de la fonction normative",en:"Status and legal basis of the normative/regulatory function",
+        m:{fr:"Vérifier le texte juridique créant l'organe normatif et l'étendue de ses pouvoirs formels.",en:"Check the legal instrument establishing the normative/regulatory body and the scope of its formal powers."}},
+       {fr:"Responsabilités de la fonction normative",en:"Responsibilities of the normative/regulatory function",
+        m:{fr:"Comparer les missions légalement confiées à l'organe normatif à la liste type MAPS (conseil, politique, statistiques, formation).",en:"Compare the legally assigned responsibilities of the normative body against the MAPS standard list (advice, policy, statistics, training)."}},
+       {fr:"Organisation, financement, indépendance",en:"Organisation, funding, staffing and level of independence",
+        m:{fr:"Vérifier le rattachement hiérarchique, le budget propre et le niveau d'autorité du responsable de l'institution.",en:"Check the institution's reporting line, dedicated budget and the authority level of its head."}},
+       {fr:"Prévention des conflits d'intérêts",en:"Avoiding conflict of interest",
+        m:{fr:"Vérifier la séparation entre fonctions opérationnelles (évaluation des offres) et fonctions de contrôle ou de régulation.",en:"Check the separation between operational functions (bid evaluation) and control/regulatory functions."}}
+     ]},
+     { name:{fr:"6. Les autorités contractantes et leurs mandats sont clairement définis",en:"6. Procuring entities and their mandates are clearly defined"}, subs:[
+       {fr:"Définition, responsabilités et pouvoirs des autorités contractantes",en:"Definition, responsibilities and formal powers of procuring entities",
+        m:{fr:"Vérifier la liste légale des autorités contractantes et les seuils de délégation de signature.",en:"Check the legal list of procuring entities and the delegation-of-authority thresholds."}},
+       {fr:"Organe de passation centralisé",en:"Centralised procurement body",
+        m:{fr:"Vérifier l'existence d'une centrale d'achat et son mandat (marchés groupés, accords-cadres).",en:"Check for a centralised purchasing body and its mandate (aggregated procurement, framework agreements)."}}
+     ]},
+     { name:{fr:"7. La passation s'appuie sur un système d'information efficace",en:"7. Public procurement is embedded in an effective information system"}, subs:[
+       {fr:"Publication des informations soutenue par les TIC",en:"Publication of public procurement information supported by information technology",
+        m:{fr:"Tester l'accès au portail unique et vérifier la publication effective des avis, attributions et décisions de recours sur un échantillon.",en:"Test access to the single portal and verify actual publication of notices, awards and appeal decisions on a sample."}},
+       {fr:"Utilisation de la passation électronique",en:"Use of e-Procurement",
+        m:{fr:"Mesurer la part des procédures effectivement dématérialisées et la compétence des agents à utiliser le système.",en:"Measure the share of procedures actually conducted electronically and staff proficiency in using the system."}},
+       {fr:"Stratégie de gestion des données de passation",en:"Strategies to manage procurement data",
+        m:{fr:"Vérifier l'existence d'un système de collecte de données fiable, audité et exploité pour le pilotage.",en:"Check for a reliable, audited data collection system that is actually used for steering the system."}}
+     ]},
+     { name:{fr:"8. Capacité de développement et d'amélioration du système",en:"8. Capacity to develop and improve the system"}, subs:[
+       {fr:"Formation, conseil et assistance",en:"Training, advice and assistance",
+        m:{fr:"Vérifier l'existence d'un plan de formation basé sur une analyse des besoins et son évaluation périodique.",en:"Check for a training plan based on a needs analysis and its periodic evaluation."}},
+       {fr:"Reconnaissance de la fonction achat comme profession",en:"Recognition of procurement as a profession",
+        m:{fr:"Vérifier l'existence de fiches de poste, de critères de recrutement et d'un parcours de carrière propres à l'achat public.",en:"Check for job descriptions, recruitment criteria and a career path specific to public procurement."}},
+       {fr:"Suivi de la performance pour améliorer le système",en:"Monitoring performance to improve the system",
+        m:{fr:"Vérifier l'existence d'indicateurs de performance et d'un plan d'action stratégique suivi dans le temps.",en:"Check for performance indicators and a strategic action plan monitored over time."}}
+     ]}
+   ]},
+ { key:"III", name:{fr:"III. Opérations de passation et pratiques de marché",en:"III. Public Procurement Operations and Market Practices"}, short:{fr:"Opérations",en:"Operations"},
+   indicators:[
+     { name:{fr:"9. Les pratiques de passation atteignent les objectifs fixés",en:"9. Public procurement practices achieve stated objectives"}, subs:[
+       {fr:"Planification (analyse des besoins, étude de marché)",en:"Planning (needs analysis, market research)",
+        m:{fr:"Sur un échantillon de dossiers, vérifier la présence d'une analyse des besoins et d'une étude de marché préalable.",en:"On a sample of files, check for evidence of a needs analysis and prior market research."}},
+       {fr:"Sélection et contractualisation",en:"Selection and contracting",
+        m:{fr:"Sur l'échantillon, mesurer les délais de procédure, le taux d'offres recevables et la conformité aux règles de publication.",en:"On the sample, measure procedure duration, the responsive-bid rate and compliance with publication rules."}},
+       {fr:"Gestion des contrats en pratique",en:"Contract management in practice",
+        m:{fr:"Sur l'échantillon, vérifier les délais d'exécution, les contrôles qualité et les délais de paiement réels.",en:"On the sample, check execution timeliness, quality control practices and actual payment delays."}}
+     ]},
+     { name:{fr:"10. Le marché de la commande publique est pleinement fonctionnel",en:"10. The public procurement market is fully functional"}, subs:[
+       {fr:"Dialogue et partenariats public-privé",en:"Dialogue and partnerships between public and private sector",
+        m:{fr:"Vérifier l'existence d'instances formelles de concertation et mener une enquête de perception auprès du secteur privé.",en:"Check for formal consultation forums and run a perception survey among private sector participants."}},
+       {fr:"Organisation du secteur privé et accès au marché",en:"Private sector's organisation and access to the public procurement market",
+        m:{fr:"Analyser la concentration des attributions (nombre de fournisseurs actifs) et les contraintes d'accès signalées par les entreprises.",en:"Analyse award concentration (number of active suppliers) and access constraints reported by firms."}},
+       {fr:"Secteurs clés et stratégies sectorielles",en:"Key sectors and sector strategies",
+        m:{fr:"Identifier les secteurs à forts enjeux budgétaires et évaluer les risques spécifiques (concurrence, conformité) par secteur.",en:"Identify sectors with high budget stakes and assess sector-specific risks (competition, compliance)."}}
+     ]}
+   ]},
+ { key:"IV", name:{fr:"IV. Redevabilité, intégrité et transparence",en:"IV. Accountability, Integrity and Transparency"}, short:{fr:"Redevabilité",en:"Accountability"},
+   indicators:[
+     { name:{fr:"11. Transparence et engagement de la société civile renforcent l'intégrité",en:"11. Transparency and civil society engagement foster integrity"}, subs:[
+       {fr:"Environnement propice à la consultation et au suivi publics",en:"Enabling environment for public consultation and monitoring",
+        m:{fr:"Vérifier l'existence d'un processus de consultation formel avant toute réforme du cadre de la commande publique.",en:"Check for a formal consultation process ahead of any reform to the procurement framework."}},
+       {fr:"Accès du public à l'information, adéquat et en temps utile",en:"Adequate and timely access to information by the public",
+        m:{fr:"Tester l'accessibilité effective et le délai de mise à jour des informations publiées sur le portail public.",en:"Test the actual accessibility and update timeliness of information published on the public portal."}},
+       {fr:"Engagement direct de la société civile",en:"Direct engagement of civil society",
+        m:{fr:"Vérifier les mécanismes concrets d'implication de la société civile dans le suivi des marchés (observateurs, audits sociaux).",en:"Check for concrete mechanisms involving civil society in procurement oversight (observers, social audits)."}}
+     ]},
+     { name:{fr:"12. Système de contrôle et d'audit efficace",en:"12. Effective procurement control and audit systems"}, subs:[
+       {fr:"Cadre légal, organisation et procédures du système de contrôle",en:"Legal framework, organisation and procedures of the control system",
+        m:{fr:"Cartographier le cadre légal du contrôle interne et externe et vérifier la couverture effective des marchés publics.",en:"Map the legal framework for internal and external control and check its actual coverage of public procurement."}},
+       {fr:"Coordination des contrôles et audits de la commande publique",en:"Coordination of controls and audits of public procurement",
+        m:{fr:"Vérifier l'absence de chevauchement entre les corps de contrôle et l'existence d'un plan d'audit coordonné.",en:"Check for the absence of overlap between control bodies and the existence of a coordinated audit plan."}},
+       {fr:"Application et suivi des constats et recommandations",en:"Enforcement and follow-up on findings and recommendations",
+        m:{fr:"Vérifier, sur un échantillon de rapports d'audit, le taux de mise en œuvre des recommandations.",en:"On a sample of audit reports, check the implementation rate of recommendations."}},
+       {fr:"Qualification et formation pour conduire les audits de marchés",en:"Qualification and training to conduct procurement audits",
+        m:{fr:"Vérifier si les auditeurs reçoivent une formation spécifique aux marchés publics avant de conduire des audits.",en:"Check whether auditors receive specific public procurement training before conducting audits."}}
+     ]},
+     { name:{fr:"13. Mécanisme de recours efficace et efficient",en:"13. Effective and efficient procurement appeals mechanisms"}, subs:[
+       {fr:"Processus de contestation et d'appel",en:"Process for challenges and appeals",
+        m:{fr:"Vérifier les délais légaux de traitement des recours et leur respect effectif sur un échantillon de dossiers.",en:"Check the legal time limits for handling complaints and actual compliance on a sample of cases."}},
+       {fr:"Indépendance et capacité de l'organe de recours",en:"Independence and capacity of the appeals body",
+        m:{fr:"Vérifier la composition de l'organe de recours et son absence de lien hiérarchique avec les acheteurs.",en:"Check the composition of the appeals body and the absence of any hierarchical link with contracting authorities."}},
+       {fr:"Décisions de l'organe de recours",en:"Decisions of the appeals body",
+        m:{fr:"Vérifier la publication effective des décisions et la possibilité de recours judiciaire ultérieur.",en:"Check the actual publication of decisions and the availability of subsequent judicial review."}}
+     ]},
+     { name:{fr:"14. Mesures d'éthique et de lutte contre la corruption",en:"14. Existence of ethics and anti-corruption measures"}, subs:[
+       {fr:"Définition légale des pratiques prohibées, conflits d'intérêts et sanctions",en:"Legal definition of prohibited practices, conflict of interest and associated penalties",
+        m:{fr:"Vérifier que la loi définit précisément fraude, corruption, collusion et conflit d'intérêts, avec les sanctions associées.",en:"Check that the law precisely defines fraud, corruption, collusion and conflict of interest, with associated penalties."}},
+       {fr:"Dispositions sur les pratiques prohibées dans les documents de passation",en:"Provisions on prohibited practices in procurement documents",
+        m:{fr:"Vérifier que les dossiers de consultation types intègrent des clauses anti-corruption et des déclarations d'intégrité.",en:"Check that model tender documents include anti-corruption clauses and integrity declarations."}},
+       {fr:"Sanctions effectives et mécanismes d'application",en:"Effective sanctions and enforcement systems",
+        m:{fr:"Analyser les statistiques de sanctions prononcées et leur application effective sur les dernières années.",en:"Analyse statistics on sanctions issued and their actual enforcement over recent years."}},
+       {fr:"Cadre anti-corruption et formation à l'intégrité",en:"Anti-corruption framework and integrity training",
+        m:{fr:"Vérifier l'existence de modules de formation à l'intégrité, obligatoires pour les agents et si possible les fournisseurs.",en:"Check for integrity training modules, mandatory for staff and where possible for suppliers."}},
+       {fr:"Soutien des parties prenantes au renforcement de l'intégrité",en:"Stakeholder support to strengthen integrity in procurement",
+        m:{fr:"Mener des entretiens avec les parties prenantes pour évaluer leur perception de l'intégrité du système.",en:"Conduct stakeholder interviews to assess perceptions of the system's integrity."}},
+       {fr:"Mécanisme sécurisé de signalement des pratiques prohibées",en:"Secure mechanism for reporting prohibited practices or unethical behaviour",
+        m:{fr:"Vérifier l'existence d'un canal de signalement sécurisé (ligne d'alerte) et la protection des lanceurs d'alerte.",en:"Check for a secure reporting channel (whistleblower hotline) and whistleblower protection."}},
+       {fr:"Codes de conduite, d'éthique et règles de déclaration financière",en:"Codes of conduct/ethics and financial disclosure rules",
+        m:{fr:"Vérifier l'existence de codes de conduite ou d'éthique et d'obligations de déclaration de patrimoine ou d'intérêts.",en:"Check for codes of conduct/ethics and asset or interest declaration requirements."}}
+     ]}
+   ]}
+];
+
+let lang = "fr";
+const STATUSES = ["green","yellow","red","na"];
+const STATUS_COLOR = { green:"#0ca30c", yellow:"#fab219", red:"#d03b3b", na:"#898781" };
+const state = {};
+pillars.forEach(p => p.indicators.forEach((ind,ii) => ind.subs.forEach((_,si) => { state[p.key+"-"+ii+"-"+si] = null; })));
+
+const textRefs = [];
+const methodRefs = [];
+const wrap = document.getElementById("pillars");
+const jump = document.getElementById("jumpnav");
+
+pillars.forEach(p => {
+  const jbtn = document.createElement("button");
+  jbtn.type = "button";
+  jbtn.addEventListener("click", () => document.getElementById("sec-"+p.key).scrollIntoView({behavior:"smooth", block:"start"}));
+  jump.appendChild(jbtn);
+  textRefs.push({el: jbtn, text: p.short});
+
+  const section = document.createElement("div");
+  section.id = "sec-"+p.key;
+  const h = document.createElement("p");
+  h.className = "pillar-title";
+  section.appendChild(h);
+  textRefs.push({el: h, text: p.name});
+
+  p.indicators.forEach((ind,ii) => {
+    const indHead = document.createElement("p");
+    indHead.className = "indicator-title";
+    section.appendChild(indHead);
+    textRefs.push({el: indHead, text: ind.name});
+
+    ind.subs.forEach((label,si) => {
+      const id = p.key+"-"+ii+"-"+si;
+      const row = document.createElement("div");
+      row.className = "row";
+
+      const labWrap = document.createElement("div");
+      labWrap.className = "lab-wrap";
+      const lab = document.createElement("span");
+      lab.className = "lab";
+      labWrap.appendChild(lab);
+      textRefs.push({el: lab, text: label});
+      methodRefs.push({el: lab, method: label.m});
+
+      const q = document.createElement("span");
+      q.textContent = "?";
+      q.className = "qmark";
+      labWrap.appendChild(q);
+      methodRefs.push({el: q, method: label.m});
+
+      row.appendChild(labWrap);
+
+      const seg = document.createElement("div");
+      seg.className = "seg";
+      STATUSES.forEach(st => {
+        const btn = document.createElement("button");
+        btn.type = "button";
+        btn.dataset.status = st;
+        btn.textContent = st === "na" ? "N/A" : "";
+        btn.style.width = st === "na" ? "34px" : "22px";
+        btn.addEventListener("click", () => {
+          state[id] = state[id] === st ? null : st;
+          seg.querySelectorAll("button").forEach((b) => {
+            const bst = b.dataset.status;
+            const active = state[id] === bst;
+            b.style.background = active ? STATUS_COLOR[bst] : "#fff";
+            b.style.borderColor = active ? STATUS_COLOR[bst] : "var(--border-strong)";
+            b.style.color = active ? "#ffffff" : "var(--text-secondary)";
+          });
+          update();
+        });
+        seg.appendChild(btn);
+      });
+      row.appendChild(seg);
+      section.appendChild(row);
+    });
+  });
+  wrap.appendChild(section);
+});
+
+function applyStaticText() {
+  const t = T[lang];
+  document.documentElement.lang = lang;
+  document.getElementById("badge").textContent = t.badge;
+  document.getElementById("subtitle").textContent = t.subtitle;
+  document.getElementById("hint").textContent = t.hint;
+  document.getElementById("legend-green").textContent = t.legend.green;
+  document.getElementById("legend-yellow").textContent = t.legend.yellow;
+  document.getElementById("legend-red").textContent = t.legend.red;
+  document.getElementById("legend-na").textContent = t.legend.na;
+  document.getElementById("stat-total-label").textContent = t.stat.total;
+  document.getElementById("stat-green-label").textContent = t.stat.green;
+  document.getElementById("stat-yellow-label").textContent = t.stat.yellow;
+  document.getElementById("stat-red-label").textContent = t.stat.red;
+  document.getElementById("footer-note").textContent = t.footer;
+  document.getElementById("lang-toggle-label").textContent = t.toggleTo;
+  textRefs.forEach(r => { r.el.textContent = r.text[lang]; });
+  methodRefs.forEach(r => { r.el.title = r.method[lang]; });
+  document.querySelectorAll("[data-status]").forEach(b => { b.title = t.legend[b.dataset.status]; });
+  if (chart) { chart.data.labels = pillars.map(p => p.short[lang]); chart.update(); }
+}
+
+document.getElementById("lang-toggle").addEventListener("click", () => {
+  lang = lang === "fr" ? "en" : "fr";
+  applyStaticText();
+});
+
+let chart;
+function update() {
+  let g=0,y=0,r=0,total=0;
+  const perPillar = pillars.map(() => ({g:0,y:0,r:0}));
+  const redFlags = [];
+  pillars.forEach((p,pi) => p.indicators.forEach((ind,ii) => ind.subs.forEach((label,si) => {
+    const v = state[p.key+"-"+ii+"-"+si];
+    if (v === "green") { g++; perPillar[pi].g++; total++; }
+    else if (v === "yellow") { y++; perPillar[pi].y++; total++; }
+    else if (v === "red") { r++; perPillar[pi].r++; total++; redFlags.push(p.short[lang] + " — " + label[lang]); }
+    else if (v === "na") { total++; }
+  })));
+
+  document.getElementById("stat-total").textContent = total + "/55";
+  document.getElementById("stat-green").textContent = g;
+  document.getElementById("stat-yellow").textContent = y;
+  document.getElementById("stat-red").textContent = r;
+
+  const rf = document.getElementById("red-flags");
+  if (redFlags.length) {
+    rf.innerHTML = "<p style=\"font-weight:600;color:#d03b3b;margin:0 0 4px;\">" + T[lang].redFlagsPrefix + "</p>" +
+      redFlags.map(t => "<p style=\"color:var(--text-secondary);\">• " + t + "</p>").join("");
+  } else {
+    rf.innerHTML = "";
+  }
+
+  if (chart) {
+    chart.data.datasets[0].data = perPillar.map(x => x.g);
+    chart.data.datasets[1].data = perPillar.map(x => x.y);
+    chart.data.datasets[2].data = perPillar.map(x => x.r);
+    chart.update();
+  }
+}
+
+const ctx = document.getElementById("matrix");
+chart = new Chart(ctx, {
+  type: "bar",
+  data: {
+    labels: pillars.map(p => p.short[lang]),
+    datasets: [
+      { label: "Compliant", data: pillars.map(()=>0), backgroundColor: "#0ca30c" },
+      { label: "Gap", data: pillars.map(()=>0), backgroundColor: "#fab219" },
+      { label: "Substantial gap", data: pillars.map(()=>0), backgroundColor: "#d03b3b" }
+    ]
+  },
+  options: {
+    indexAxis: "y",
+    responsive: true,
+    maintainAspectRatio: false,
+    scales: {
+      x: { stacked: true, ticks: { color: "#898781", precision: 0 }, grid: { color: "#e1e0d9" } },
+      y: { stacked: true, ticks: { color: "#16181C" }, grid: { display: false } }
+    },
+    plugins: { legend: { display: false } }
+  }
+});
+applyStaticText();
+update();
+</script>
+</body>
+</html>
